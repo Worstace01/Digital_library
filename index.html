@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Library | Modern Archive</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css.css">
+<script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                colors: {
+                    brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' },
+                    accent: { 500: '#f59e0b', 600: '#d97706' }
+                }
+            }
+        }
+    }
+</script>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-sans min-h-screen flex flex-col transition-colors duration-300">
+
+<nav class="fixed w-full z-50 transition-all duration-300 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-800" id="navbar">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-20">
+        <div class="logo text-2xl font-bold flex items-center gap-3 text-brand-900 dark:text-white">
+            <div class="w-10 h-10 bg-gradient-to-tr from-brand-600 to-brand-400 rounded-xl flex items-center justify-center text-white shadow-lg">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <span>Digital<span class="text-brand-600">Library</span></span>
+        </div>
+        
+        <div class="hidden md:flex items-center space-x-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700">
+            <a href="#" id="homeLink" class="nav-item px-5 py-2 rounded-full text-sm font-semibold transition-all active-nav-pill">Discover</a>
+            <a href="#" id="myBooksLink" class="nav-item student-only hidden px-5 py-2 rounded-full text-sm font-semibold text-gray-500 hover:text-brand-600 transition-all">My Library</a>
+            <a href="#" id="adminLink" class="nav-item admin-only hidden px-5 py-2 rounded-full text-sm font-semibold text-gray-500 hover:text-brand-600 transition-all">Admin</a>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <button id="themeToggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                <i class="fas fa-moon dark:hidden"></i>
+                <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+            </button>
+
+            <div id="authButtons" class="flex gap-2">
+                <button id="signupBtn" class="hidden md:block px-5 py-2.5 rounded-full font-semibold text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-gray-800 transition">
+                    Sign Up
+                </button>
+                <button id="loginBtn" class="bg-brand-900 dark:bg-brand-600 hover:bg-brand-800 text-white px-6 py-2.5 rounded-full font-semibold shadow-lg shadow-brand-500/30 transition transform hover:-translate-y-0.5">
+                    Sign In
+                </button>
+            </div>
+            
+            <div id="userMenu" class="hidden flex items-center gap-3">
+                <span class="text-sm font-medium text-gray-600 dark:text-gray-300" id="userNameDisplay">User</span>
+                <button id="logoutBtn" class="bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 px-4 py-2 rounded-full text-sm font-bold transition">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+  </div>
+</nav>
+
+<main id="mainContent" class="flex-grow w-full pt-24 pb-12 px-4 md:px-8 max-w-7xl mx-auto">
+
+  <div id="homeSection" class="animate-fade-in">
+      <section class="relative w-full mb-16 rounded-3xl overflow-hidden shadow-2xl h-[400px] md:h-[500px] group">
+        <div id="heroTrack" class="absolute inset-0 flex transition-transform duration-700 ease-in-out h-full"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center">
+            <div class="px-12 md:px-20 max-w-2xl text-white">
+                <span class="inline-block py-1 px-3 rounded-md bg-brand-500/20 border border-brand-500/50 text-brand-300 text-xs font-bold tracking-wider mb-4 backdrop-blur-sm uppercase">Digital Archive</span>
+                <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4 drop-shadow-lg" id="heroTitle">Expand Your Mind</h1>
+                <p class="text-gray-200 text-lg mb-8 font-light max-w-lg" id="heroDesc">Access thousands of books, journals, and articles from the comfort of your home.</p>
+                <div class="flex gap-4">
+                    <button class="bg-brand-600 hover:bg-brand-500 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-brand-600/40 transition hover:scale-105" onclick="document.querySelector('.catalog-section').scrollIntoView({behavior:'smooth'})">Browse Books</button>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-8 right-12 flex gap-2 z-20">
+            <button id="prevSlide" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur border border-white/20 text-white flex items-center justify-center transition"><i class="fas fa-chevron-left"></i></button>
+            <button id="nextSlide" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur border border-white/20 text-white flex items-center justify-center transition"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </section>
+
+      <section class="mb-12" id="announcementsSection">
+          <div class="flex items-center gap-3 mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">News & Events</h2>
+              <div class="h-px bg-gray-200 dark:bg-gray-700 flex-grow"></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="publicAnnouncementsList"></div>
+      </section>
+
+      <section class="catalog-section">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+          <div>
+              <h2 class="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                  <span class="w-2 h-8 bg-accent-500 rounded-full"></span>
+                  Trending Books
+              </h2>
+              <p class="text-gray-500 dark:text-gray-400 mt-2 ml-5">Curated collection for this month.</p>
+          </div>
+          <div class="flex gap-3 w-full md:w-auto">
+            <div class="relative group">
+                <i class="fas fa-filter absolute left-3 top-3.5 text-gray-400 group-hover:text-brand-500 transition"></i>
+                <select id="filterStatus" class="appearance-none pl-10 pr-8 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-700 dark:text-gray-200 cursor-pointer">
+                    <option value="all">All Books</option>
+                    <option value="available">Available</option>
+                    <option value="borrowed">Borrowed</option>
+                    <option value="favorites">Favorites ❤️</option>
+                </select>
+            </div>
+            <div class="relative w-full md:w-72">
+                <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Search title, author..." class="w-full pl-11 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none shadow-sm text-gray-700 dark:text-gray-200 transition">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+            <aside class="w-full lg:w-64 flex-shrink-0">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 sticky top-28">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Categories</h3>
+                    <div class="space-y-1" id="categoryList"></div>
+                </div>
+            </aside>
+            <div class="flex-1 w-full min-h-[400px]">
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6" id="bookList"></div>
+            </div>
+        </div>
+      </section>
+  </div>
+
+  <section id="studentSection" class="hidden animate-slide-in">
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold dark:text-white">My Library</h2>
+      <p class="text-gray-500 dark:text-gray-400">Manage your reading list and schedule.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="bg-gradient-to-br from-brand-600 to-brand-800 p-8 rounded-2xl shadow-xl text-white relative overflow-hidden group cursor-pointer" id="actionBorrow">
+            <div class="absolute -right-6 -bottom-6 text-9xl text-white/10 group-hover:scale-110 transition duration-500"><i class="fas fa-book"></i></div>
+            <h3 class="text-2xl font-bold mb-1">Browse Catalog</h3>
+            <p class="text-brand-100 text-sm">Find your next read</p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 group hover:border-accent-500 transition cursor-pointer" id="actionAppointment">
+            <div class="w-12 h-12 bg-accent-100 dark:bg-accent-900/30 text-accent-600 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition"><i class="fas fa-calendar-alt"></i></div>
+            <h3 class="text-xl font-bold dark:text-white">Book Appointment</h3>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Reserve a study room or return books.</p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fas fa-check-circle"></i></div>
+            <h3 class="text-xl font-bold dark:text-white">Account Status</h3>
+            <p class="text-green-600 font-medium text-sm">Active &bull; No Fines</p>
+        </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+            <h3 class="text-lg font-bold dark:text-white">Borrowed Books</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-300 uppercase text-xs">
+                    <tr>
+                        <th class="p-6 font-semibold">Book Details</th>
+                        <th class="p-6 font-semibold">Due Date</th>
+                        <th class="p-6 font-semibold">Status</th>
+                        <th class="p-6 font-semibold">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="studentBookList" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm"></tbody>
+            </table>
+        </div>
+    </div>
+  </section>
+
+  <section id="adminSection" class="hidden animate-slide-in">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h2 class="text-3xl font-bold dark:text-white">Admin Dashboard</h2>
+        <p class="text-gray-500 dark:text-gray-400">Overview of system performance.</p>
+      </div>
+      <div class="flex gap-2">
+           <button id="addAnnouncementBtn" class="bg-white dark:bg-gray-800 hover:bg-gray-50 text-brand-600 border border-brand-200 dark:border-gray-600 px-5 py-2.5 rounded-lg font-bold shadow-sm transition flex items-center gap-2"><i class="fas fa-bullhorn"></i> Post News</button>
+           <button id="addBookBtn" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg shadow-brand-500/30 transition flex items-center gap-2"><i class="fas fa-plus"></i> Add Book</button>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-5">
+            <div class="w-14 h-14 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center text-2xl"><i class="fas fa-book"></i></div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">Total Books</p>
+                <p id="statTotal" class="text-2xl font-bold dark:text-white">0</p>
+            </div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-5">
+            <div class="w-14 h-14 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center text-2xl"><i class="fas fa-hand-holding-heart"></i></div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">Borrowed</p>
+                <p id="statBorrowed" class="text-2xl font-bold dark:text-white">0</p>
+            </div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-5">
+            <div class="w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/20 text-green-500 flex items-center justify-center text-2xl"><i class="fas fa-users"></i></div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">Active Users</p>
+                <p id="statUsers" class="text-2xl font-bold dark:text-white">0</p>
+            </div>
+        </div>
+    </div>
+    <div class="border-b border-gray-200 dark:border-gray-700 mb-6 flex gap-8">
+        <button class="pb-4 font-semibold text-brand-600 border-b-2 border-brand-600 transition" id="tabBooksBtn">Inventory</button>
+        <button class="pb-4 font-semibold text-gray-500 dark:text-gray-400 hover:text-brand-600 border-b-2 border-transparent transition" id="tabUsersBtn">Users</button>
+        <button class="pb-4 font-semibold text-gray-500 dark:text-gray-400 hover:text-brand-600 border-b-2 border-transparent transition" id="tabApptBtn">Appointments</button>
+        <button class="pb-4 font-semibold text-gray-500 dark:text-gray-400 hover:text-brand-600 border-b-2 border-transparent transition" id="tabNewsBtn">Announcements</button>
+    </div>
+    
+    <div id="adminBooksTab" class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table id="adminBookTable" class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-300 uppercase text-xs">
+                    <tr><th class="p-5">ID</th><th class="p-5">Book</th><th class="p-5">Category</th><th class="p-5">Status</th><th class="p-5 text-right">Actions</th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm text-gray-700 dark:text-gray-300"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div id="adminUsersTab" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table id="adminUserTable" class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-300 uppercase text-xs">
+                    <tr><th class="p-5">User</th><th class="p-5">Role</th><th class="p-5">Joined</th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm text-gray-700 dark:text-gray-300"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div id="adminApptTab" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table id="adminApptTable" class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-300 uppercase text-xs">
+                    <tr>
+                        <th class="p-5">Student</th>
+                        <th class="p-5">Date</th>
+                        <th class="p-5">Book</th>
+                        <th class="p-5">Rating</th>
+                        <th class="p-5">Feedback</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm text-gray-700 dark:text-gray-300"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="adminNewsTab" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table id="adminNewsTable" class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-300 uppercase text-xs">
+                    <tr><th class="p-5">Date</th><th class="p-5">Type</th><th class="p-5">Title</th><th class="p-5">Content</th><th class="p-5 text-right">Actions</th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm text-gray-700 dark:text-gray-300"></tbody>
+            </table>
+        </div>
+    </div>
+  </section>
+</main>
+
+<div id="toastBox" class="fixed bottom-6 right-6 flex flex-col gap-3 z-[60]"></div>
+<div id="lightboxModal" class="hidden fixed inset-0 z-[70] bg-black/95 flex justify-center items-center backdrop-blur-xl animate-fade-in">
+    <button class="absolute top-6 right-6 text-white/50 hover:text-white text-4xl transition" onclick="document.getElementById('lightboxModal').classList.add('hidden'); document.getElementById('lightboxModal').classList.remove('flex')">&times;</button>
+    <img class="max-w-[90%] max-h-[85vh] rounded-lg shadow-2xl animate-zoom-in" id="lightboxImg">
+</div>
+
+<div id="loginModal" class="hidden fixed inset-0 z-[60] bg-gray-900/60 backdrop-blur-sm justify-center items-center animate-fade-in">
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl w-[90%] max-w-sm shadow-2xl relative animate-slide-up border border-white/20">
+    <button class="modal-close absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white transition"><i class="fas fa-times text-lg"></i></button>
+    <div class="text-center mb-6"><h2 class="text-2xl font-bold text-gray-800 dark:text-white">Welcome Back</h2></div>
+    <form id="loginForm" class="space-y-4">
+      <input type="text" id="username" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg outline-none dark:text-white" placeholder="Username" required>
+      <input type="password" id="password" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg outline-none dark:text-white" placeholder="Password" required>
+      <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-brand-500/30 transition">Sign In</button>
+    </form>
+    <div class="mt-4 text-center text-sm"><span class="text-gray-500">No account? </span><button id="openSignupFromLogin" class="text-brand-600 hover:underline font-semibold">Sign Up</button></div>
+  </div>
+</div>
+
+<div id="signupModal" class="hidden fixed inset-0 z-[60] bg-gray-900/60 backdrop-blur-sm justify-center items-center animate-fade-in">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl w-[90%] max-w-sm shadow-2xl relative animate-slide-up border border-white/20">
+      <button class="modal-close absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"><i class="fas fa-times text-lg"></i></button>
+      <div class="text-center mb-6"><h2 class="text-2xl font-bold text-gray-800 dark:text-white">Create Account</h2></div>
+      <form id="signupForm" class="space-y-4">
+        <input type="text" id="regName" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg outline-none dark:text-white" placeholder="Full Name" required>
+        <input type="text" id="regUsername" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg outline-none dark:text-white" placeholder="Username" required>
+        <input type="password" id="regPassword" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg outline-none dark:text-white" placeholder="Password" required>
+        <input type="password" id="regConfirmPassword" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg outline-none dark:text-white" placeholder="Confirm Password" required>
+        <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-brand-500/30 transition">Sign Up</button>
+      </form>
+      <div class="mt-4 text-center text-sm"><span class="text-gray-500">Have an account? </span><button id="openLoginFromSignup" class="text-brand-600 hover:underline font-semibold">Sign In</button></div>
+    </div>
+</div>
+
+<div id="appointmentModal" class="hidden fixed inset-0 z-[60] bg-gray-900/60 backdrop-blur-sm justify-center items-center animate-fade-in">
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl w-[90%] max-w-md shadow-2xl relative animate-slide-up">
+    <button class="modal-close absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"><i class="fas fa-times"></i></button>
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Schedule Visit</h2>
+    <form id="appointmentForm" class="space-y-4">
+      <div id="bookFieldContainer" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Book to Borrow</label>
+        <input type="text" id="appointmentBookTitle" class="w-full p-3 bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-xl text-gray-600 dark:text-gray-200 cursor-not-allowed font-semibold" disabled>
+      </div>
+      <input type="date" id="appointmentDate" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none dark:text-white" required>
+      <select id="appointmentPurpose" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none dark:text-white">
+            <option value="Book Return">Book Return</option>
+            <option value="Borrow Book">Borrow Book</option>
+            <option value="Study Room">Study Room</option>
+            <option value="Research Help">Research Help</option>
+      </select>
+      <button type="submit" class="w-full bg-accent-500 hover:bg-accent-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-accent-500/30 transition">Confirm Booking</button>
+    </form>
+  </div>
+</div>
+
+<div id="addAnnouncementModal" class="hidden fixed inset-0 z-[60] bg-gray-900/60 backdrop-blur-sm justify-center items-center animate-fade-in">
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl w-[90%] max-w-md shadow-2xl relative animate-slide-up">
+    <button class="modal-close absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"><i class="fas fa-times"></i></button>
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Post News / Event</h2>
+    <form id="addAnnouncementForm" class="space-y-4">
+      <input type="text" id="newsTitle" placeholder="Title / Headline" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border-none rounded-xl outline-none dark:text-white" required>
+      <select id="newsType" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border-none rounded-xl outline-none dark:text-white">
+            <option value="News">News</option>
+            <option value="Event">Event</option>
+            <option value="Update">System Update</option>
+      </select>
+      <input type="date" id="newsDate" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border-none rounded-xl outline-none dark:text-white" required>
+      <textarea id="newsContent" rows="4" placeholder="Description or Details..." class="w-full p-3 bg-gray-50 dark:bg-gray-700 border-none rounded-xl outline-none dark:text-white" required></textarea>
+      
+      <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-brand-500/30 transition">Publish</button>
+    </form>
+  </div>
+</div>
+
+<div id="addBookModal" class="hidden fixed inset-0 z-[60] bg-gray-900/60 backdrop-blur-sm justify-center items-center animate-fade-in">
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl w-[90%] max-w-md shadow-2xl relative animate-slide-up">
+    <button class="modal-close absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"><i class="fas fa-times"></i></button>
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">New Inventory</h2>
+    <form id="addBookForm" class="space-y-4">
+      <input type="text" id="newTitle" placeholder="Book Title" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border-none rounded-xl outline-none dark:text-white" required>
+      <input type="text" id="newAuthor" placeholder="Author" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border-none rounded-xl outline-none dark:text-white" required>
+      <select id="newCategory" class="w-full p-3 bg-gray-50 dark:bg-gray-700 border-none rounded-xl outline-none dark:text-white">
+            <option value="Fiction">Fiction</option>
+            <option value="Non-Fiction">Non-Fiction</option>
+            <option value="Manga">Manga</option>
+            <option value="Science">Science</option>
+            <option value="History">History</option>
+      </select>
+      <div class="border border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-4 text-center hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer">
+          <label for="newImage" class="cursor-pointer block w-full h-full">
+              <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
+              <span class="block text-sm text-gray-500">Upload Book Cover</span>
+              <input type="file" id="newImage" class="hidden" accept="image/*">
+          </label>
+          <div id="fileNameDisplay" class="text-xs text-brand-600 mt-2 hidden font-medium"></div>
+      </div>
+      <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-brand-500/30 transition">Add to System</button>
+    </form>
+  </div>
+</div>
+
+<div id="feedbackModal" class="hidden fixed inset-0 z-[70] bg-gray-900/60 backdrop-blur-sm justify-center items-center animate-fade-in">
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl w-[90%] max-w-md shadow-2xl relative animate-slide-up">
+    <button class="modal-close absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"><i class="fas fa-times"></i></button>
+    <h2 class="text-2xl font-bold mb-2 text-gray-800 dark:text-white">Return & Review</h2>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Rate your experience reading <span id="feedbackBookTitle" class="font-bold text-brand-600">this book</span>.</p>
+    
+    <form id="feedbackForm" class="space-y-4">
+      <div class="flex justify-center gap-2 mb-2" id="starRatingContainer">
+          <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition star-input" data-value="1"></i>
+          <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition star-input" data-value="2"></i>
+          <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition star-input" data-value="3"></i>
+          <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition star-input" data-value="4"></i>
+          <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition star-input" data-value="5"></i>
+      </div>
+      <input type="hidden" id="selectedRating" value="5">
+      <input type="hidden" id="feedbackApptId">
+      
+      <textarea id="feedbackText" rows="4" class="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl outline-none dark:text-white" placeholder="Write your review here... (Optional)"></textarea>
+      <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-brand-500/30 transition">Submit Review</button>
+    </form>
+  </div>
+</div>
+
+<script src="js.js"></script>
+</body>
+</html>
