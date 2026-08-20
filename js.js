@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     let state = {
         user: JSON.parse(localStorage.getItem('digital_library_user')) || null,
-        activeCategory: "All", // <--- FIX: Changed "all" to "All" to match the category list
-        wishlist: [], 
+        activeCategory: "All",
+        wishlist: JSON.parse(localStorage.getItem('digital_library_favs')) || [], 
         darkMode: localStorage.getItem('theme') === 'dark',
         pendingBorrowBook: null,
         announcements: [] 
@@ -50,7 +50,92 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const categories = ["All", "Fiction", "Non-Fiction", "Manga", "Science", "History"];
-    let books = []; 
+    
+    // Sample hardcoded catalog for static GitHub Pages deployment
+    const initialBooks = [
+        {
+            id: 1,
+            title: "Clean Code: Handbook of Software Craftsmanship",
+            author: "Robert C. Martin",
+            category: "Science",
+            rating: 5,
+            status: "available",
+            image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=800&auto=format&fit=crop"
+        },
+        {
+            id: 2,
+            title: "The Pragmatic Programmer",
+            author: "Andrew Hunt & David Thomas",
+            category: "Science",
+            rating: 5,
+            status: "available",
+            image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop"
+        },
+        {
+            id: 3,
+            title: "Demon Slayer: Kimetsu no Yaiba",
+            author: "Koyoharu Gotouge",
+            category: "Manga",
+            rating: 5,
+            status: "available",
+            image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=800&auto=format&fit=crop"
+        },
+        {
+            id: 4,
+            title: "Sapiens: A Brief History of Humankind",
+            author: "Yuval Noah Harari",
+            category: "History",
+            rating: 4,
+            status: "available",
+            image: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?q=80&w=800&auto=format&fit=crop"
+        },
+        {
+            id: 5,
+            title: "Dune",
+            author: "Frank Herbert",
+            category: "Fiction",
+            rating: 5,
+            status: "borrowed",
+            image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=800&auto=format&fit=crop"
+        },
+        {
+            id: 6,
+            title: "Atomic Habits",
+            author: "James Clear",
+            category: "Non-Fiction",
+            rating: 5,
+            status: "available",
+            image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=800&auto=format&fit=crop"
+        }
+    ];
+
+    const initialAnnouncements = [
+        {
+            id: 1,
+            title: "New Digital Book Collection Added!",
+            content: "We have expanded our catalog with over 50 new tech, science, and literature ebooks available for instant borrowing.",
+            type: "Update",
+            date: "2026-08-20"
+        },
+        {
+            id: 2,
+            title: "Annual Virtual Book Club & Workshop",
+            content: "Join us this Friday for an interactive discussion on modern tech literature and creative writing.",
+            type: "Event",
+            date: "2026-08-25"
+        }
+    ];
+
+    let books = JSON.parse(localStorage.getItem('digital_library_books')) || initialBooks;
+    let announcements = JSON.parse(localStorage.getItem('digital_library_announcements')) || initialAnnouncements;
+    let appointments = JSON.parse(localStorage.getItem('digital_library_appts')) || [];
+
+    function saveState() {
+        localStorage.setItem('digital_library_books', JSON.stringify(books));
+        localStorage.setItem('digital_library_announcements', JSON.stringify(announcements));
+        localStorage.setItem('digital_library_appts', JSON.stringify(appointments));
+        localStorage.setItem('digital_library_favs', JSON.stringify(state.wishlist));
+    }
 
     function init() {
         applyTheme();
@@ -62,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (state.user) fetchFavorites(); 
 
-        if(state.user && state.user.role === 'Admin') {
+        if (state.user && state.user.role === 'Admin') {
             fetchAdminData();
             showAdminPanel();
         } else if (state.user) {
@@ -75,47 +160,30 @@ document.addEventListener("DOMContentLoaded", () => {
         setupEventListeners();
     }
 
-    async function fetchBooks() {
-        try {
-            const res = await fetch('api.php?action=get_books');
-            books = await res.json();
-            renderBooks();
-            if(state.user && state.user.role === 'Admin') renderAdminTable();
-        } catch (e) { console.error("Error loading books", e); }
+    function fetchBooks() {
+        renderBooks();
+        if (state.user && state.user.role === 'Admin') renderAdminTable();
     }
 
-    async function fetchFavorites() {
-        if (!state.user) return;
-        try {
-            const res = await fetch(`api.php?action=get_favorites&user_id=${state.user.id}`);
-            state.wishlist = await res.json();
-            renderBooks(); 
-        } catch (e) { console.error("Error loading favorites", e); }
+    function fetchFavorites() {
+        renderBooks(); 
     }
     
-    async function fetchAnnouncements() {
-        try {
-            const res = await fetch('api.php?action=get_announcements');
-            state.announcements = await res.json();
-            renderPublicAnnouncements();
-            if(state.user && state.user.role === 'Admin') renderAdminAnnouncements();
-        } catch (e) { console.error("Error loading news", e); }
+    function fetchAnnouncements() {
+        state.announcements = announcements;
+        renderPublicAnnouncements();
+        if (state.user && state.user.role === 'Admin') renderAdminAnnouncements();
     }
 
-    async function fetchAdminData() {
-        try {
-            const [usersRes, apptRes] = await Promise.all([
-                fetch('api.php?action=get_users'),
-                fetch('api.php?action=get_appointments')
-            ]);
-            const users = await usersRes.json();
-            const appts = await apptRes.json();
-            
-            renderUserTable(users);
-            renderAdminAppointments(appts);
-            updateAdminStats(books, users);
-            renderAdminAnnouncements();
-        } catch (e) { console.error("Error loading admin data", e); }
+    function fetchAdminData() {
+        const dummyUsers = [
+            { name: "Demo Student", role: "Student", date: "2026-08-20" },
+            { name: "Admin User", role: "Admin", date: "2026-08-01" }
+        ];
+        renderUserTable(dummyUsers);
+        renderAdminAppointments(appointments);
+        updateAdminStats(books, dummyUsers);
+        renderAdminAnnouncements();
     }
 
     function generateStars(rating) {
@@ -127,12 +195,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     function renderPublicAnnouncements() {
-        if (!state.announcements.length) {
+        if (!announcements.length) {
             document.getElementById('announcementsSection').classList.add('hidden');
             return;
         }
         document.getElementById('announcementsSection').classList.remove('hidden');
-        els.grids.news.innerHTML = state.announcements.map(news => {
+        els.grids.news.innerHTML = announcements.map(news => {
             let typeColor = 'bg-blue-100 text-blue-700';
             if (news.type === 'Event') typeColor = 'bg-purple-100 text-purple-700';
             if (news.type === 'Update') typeColor = 'bg-orange-100 text-orange-700';
@@ -154,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const tbody = document.querySelector("#adminNewsTable tbody");
         if (!tbody) return;
         
-        tbody.innerHTML = state.announcements.map(news => `
+        tbody.innerHTML = announcements.map(news => `
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700">
                 <td class="p-4 text-sm text-gray-500">${news.date}</td>
                 <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">${news.type}</span></td>
@@ -167,12 +235,11 @@ document.addEventListener("DOMContentLoaded", () => {
         `).join('');
 
         document.querySelectorAll('.delete-news-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                if(confirm("Delete this announcement?")) {
-                    await fetch('api.php?action=delete_announcement', { 
-                        method: 'POST', 
-                        body: JSON.stringify({ id: e.currentTarget.dataset.id }) 
-                    });
+            btn.addEventListener('click', (e) => {
+                if (confirm("Delete this announcement?")) {
+                    const id = parseInt(e.currentTarget.dataset.id);
+                    announcements = announcements.filter(n => n.id !== id);
+                    saveState();
                     fetchAnnouncements();
                     showToast("Announcement deleted");
                 }
@@ -181,13 +248,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderBooks() {
-        const filterText = document.getElementById("searchInput").value.toLowerCase();
-        const filterStatus = document.getElementById("filterStatus").value;
+        const searchInput = document.getElementById("searchInput");
+        const filterStatusEl = document.getElementById("filterStatus");
+        const filterText = searchInput ? searchInput.value.toLowerCase() : "";
+        const filterStatus = filterStatusEl ? filterStatusEl.value : "all";
 
         const filtered = books.filter(b => {
             const matchesText = b.title.toLowerCase().includes(filterText) || b.author.toLowerCase().includes(filterText);
-            
-            // This line was causing the issue because state.activeCategory was "all" but categories has "All"
             const matchesCat = state.activeCategory === 'All' ? true : b.category === state.activeCategory;
             
             let matchesStatus = true;
@@ -196,6 +263,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (filterStatus === 'favorites') matchesStatus = state.wishlist.includes(b.id);
             return matchesText && matchesCat && matchesStatus;
         });
+
+        if (!els.grids.books) return;
 
         els.grids.books.innerHTML = filtered.map(book => {
             const statusBadge = book.status === 'available' 
@@ -253,26 +322,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         document.querySelectorAll('.fav-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
+            btn.addEventListener('click', (e) => {
                 if (!state.user) return showToast("Login to save favorites", "error");
                 
                 const bookId = parseInt(e.currentTarget.dataset.id);
-                const res = await fetch('api.php?action=toggle_favorite', {
-                    method: 'POST',
-                    body: JSON.stringify({ user_id: state.user.id, book_id: bookId })
-                });
-                const data = await res.json();
-                
-                if (data.status === 'success') {
-                    if (data.fav_status === 'added') {
-                        state.wishlist.push(bookId);
-                        showToast("Added to favorites");
-                    } else {
-                        state.wishlist = state.wishlist.filter(id => id !== bookId);
-                        showToast("Removed from favorites");
-                    }
-                    renderBooks(); 
+                if (state.wishlist.includes(bookId)) {
+                    state.wishlist = state.wishlist.filter(id => id !== bookId);
+                    showToast("Removed from favorites");
+                } else {
+                    state.wishlist.push(bookId);
+                    showToast("Added to favorites");
                 }
+                saveState();
+                renderBooks(); 
             });
         });
 
@@ -300,11 +362,13 @@ document.addEventListener("DOMContentLoaded", () => {
         else document.documentElement.classList.remove('dark');
     }
     
-    els.themeToggle.addEventListener('click', () => {
-        state.darkMode = !state.darkMode;
-        localStorage.setItem('theme', state.darkMode ? 'dark' : 'light');
-        applyTheme();
-    });
+    if (els.themeToggle) {
+        els.themeToggle.addEventListener('click', () => {
+            state.darkMode = !state.darkMode;
+            localStorage.setItem('theme', state.darkMode ? 'dark' : 'light');
+            applyTheme();
+        });
+    }
 
     function updateAuthUI() {
         if (state.user) {
@@ -323,47 +387,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function login(username, password) {
-        const res = await fetch('api.php?action=login', {
-            method: 'POST',
-            body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
+    function login(username, password) {
+        state.user = { id: 1, name: username || "Demo Student", role: username.toLowerCase() === 'admin' ? 'Admin' : 'Student' };
+        localStorage.setItem('digital_library_user', JSON.stringify(state.user));
+        updateAuthUI();
+        showToast(`Welcome back, ${state.user.name}`);
         
-        if (data.status === 'success') {
-            state.user = data.user;
-            localStorage.setItem('digital_library_user', JSON.stringify(state.user));
-            updateAuthUI();
-            showToast(`Welcome back, ${state.user.name}`);
-            
-            fetchFavorites(); 
-
-            if (state.user.role === 'Admin') showAdminPanel();
-            else showStudentDashboard();
-            
-            els.modals.login.classList.add('hidden');
-            els.modals.login.classList.remove('flex');
-        } else {
-            showToast(data.message, 'error');
-        }
+        if (state.user.role === 'Admin') showAdminPanel();
+        else showStudentDashboard();
+        
+        els.modals.login.classList.add('hidden');
+        els.modals.login.classList.remove('flex');
     }
 
-    async function register(name, username, password) {
-        const res = await fetch('api.php?action=register', {
-            method: 'POST',
-            body: JSON.stringify({ name, username, password })
-        });
-        const data = await res.json();
-
-        if (data.status === 'success') {
-            showToast("Account created! Please login.");
-            els.modals.signup.classList.add('hidden');
-            els.modals.signup.classList.remove('flex');
-            els.modals.login.classList.remove('hidden');
-            els.modals.login.classList.add('flex');
-        } else {
-            showToast(data.message, 'error');
-        }
+    function register(name, username, password) {
+        showToast("Account created! Please login.");
+        els.modals.signup.classList.add('hidden');
+        els.modals.signup.classList.remove('flex');
+        els.modals.login.classList.remove('hidden');
+        els.modals.login.classList.add('flex');
     }
 
     function hideAllSections() {
@@ -425,6 +467,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderAdminTable() {
         const tbody = document.querySelector("#adminBookTable tbody");
+        if (!tbody) return;
+
         tbody.innerHTML = books.map(book => `
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700">
                 <td class="p-4 text-xs text-gray-400">#${book.id}</td>
@@ -439,17 +483,22 @@ document.addEventListener("DOMContentLoaded", () => {
         `).join('');
 
         document.querySelectorAll('.return-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                await fetch('api.php?action=return_book', { method: 'POST', body: JSON.stringify({ id: e.target.dataset.id }) });
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(e.target.dataset.id);
+                const book = books.find(b => b.id === id);
+                if (book) book.status = 'available';
+                saveState();
                 fetchBooks();
                 showToast("Book returned");
             });
         });
 
         document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                if(confirm("Delete book?")) {
-                    await fetch('api.php?action=delete_book', { method: 'POST', body: JSON.stringify({ id: e.currentTarget.dataset.id }) });
+            btn.addEventListener('click', (e) => {
+                if (confirm("Delete book?")) {
+                    const id = parseInt(e.currentTarget.dataset.id);
+                    books = books.filter(b => b.id !== id);
+                    saveState();
                     fetchBooks();
                     showToast("Book deleted");
                 }
@@ -458,7 +507,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderUserTable(users) {
-        document.querySelector("#adminUserTable tbody").innerHTML = users.map(u => `
+        const tbody = document.querySelector("#adminUserTable tbody");
+        if (!tbody) return;
+        tbody.innerHTML = users.map(u => `
             <tr class="border-b border-gray-100 dark:border-gray-700">
                 <td class="p-4 font-bold dark:text-white">${u.name}</td>
                 <td class="p-4 text-sm text-gray-500">${u.role}</td>
@@ -468,8 +519,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderAdminAppointments(appts) {
-        document.querySelector("#adminApptTable tbody").innerHTML = appts.map(a => {
-            // Helper to generate stars for the table
+        const tbody = document.querySelector("#adminApptTable tbody");
+        if (!tbody) return;
+        tbody.innerHTML = appts.map(a => {
             let stars = '-';
             if (a.user_rating) {
                 stars = '';
@@ -491,264 +543,148 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     function updateAdminStats(books, users) {
-        document.getElementById("statTotal").textContent = books.length;
-        document.getElementById("statBorrowed").textContent = books.filter(b => b.status === 'borrowed').length;
-        document.getElementById("statUsers").textContent = users.length;
+        const statTotal = document.getElementById("statTotal");
+        const statBorrowed = document.getElementById("statBorrowed");
+        const statUsers = document.getElementById("statUsers");
+        if (statTotal) statTotal.textContent = books.length;
+        if (statBorrowed) statBorrowed.textContent = books.filter(b => b.status === 'borrowed').length;
+        if (statUsers) statUsers.textContent = users.length;
     }
 
-    async function renderStudentTable() {
+    function renderStudentTable() {
         if (!state.user) return;
 
         const tbody = document.getElementById("studentBookList");
+        if (!tbody) return;
         
-        tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400">Loading your books...</td></tr>`;
+        const myBooks = appointments.filter(a => a.student_name === state.user.name);
 
-        try {
-            const res = await fetch(`api.php?action=get_user_borrowed_books&student=${encodeURIComponent(state.user.name)}`);
-            const myBooks = await res.json();
-
-            if (myBooks.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400">You haven't borrowed any books yet.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = myBooks.map(appt => {
-                const hasFeedback = appt.feedback !== null;
-                const feedbackBtn = hasFeedback 
-                    ? `<span class="text-green-500 text-sm"><i class="fas fa-check"></i> Reviewed</span>` 
-                    : `<button class="text-brand-600 hover:text-brand-800 font-bold text-sm bg-brand-50 hover:bg-brand-100 px-3 py-1 rounded-full transition open-feedback-btn" data-id="${appt.id}" data-title="${appt.book_title}">Rate & Return</button>`;
-
-                return `
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition border-b border-gray-100 dark:border-gray-700">
-                    <td class="p-6">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded bg-brand-100 text-brand-600 flex items-center justify-center text-lg">
-                                <i class="fas fa-book"></i>
-                            </div>
-                            <div>
-                                <div class="font-bold text-gray-800 dark:text-white">${appt.book_title}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">Borrowed via Appointment</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="p-6 text-brand-600 font-medium">${appt.date}</td>
-                    <td class="p-6">
-                        <span class="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-bold">
-                            Active
-                        </span>
-                    </td>
-                    <td class="p-6">
-                        ${feedbackBtn}
-                    </td>
-                </tr>`;
-            }).join('');
-            
-            document.querySelectorAll('.open-feedback-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const id = e.currentTarget.dataset.id;
-                    const title = e.currentTarget.dataset.title;
-                    
-                    document.getElementById('feedbackApptId').value = id;
-                    document.getElementById('feedbackBookTitle').textContent = title;
-                    document.querySelectorAll('.star-input').forEach(s => s.classList.remove('text-yellow-400'));
-                    document.querySelectorAll('.star-input').forEach(s => s.classList.add('text-gray-300'));
-                    document.getElementById('selectedRating').value = 5;
-                    document.getElementById('feedbackText').value = '';
-                    
-                    els.modals.feedback.classList.remove('hidden');
-                    els.modals.feedback.classList.add('flex');
-                });
-            });
-
-        } catch (e) {
-            console.error("Error loading student books", e);
-            tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-400">Error loading data.</td></tr>`;
+        if (myBooks.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400">You haven't borrowed any books yet.</td></tr>`;
+            return;
         }
+
+        tbody.innerHTML = myBooks.map(appt => {
+            const hasFeedback = appt.feedback !== null;
+            const feedbackBtn = hasFeedback 
+                ? `<span class="text-green-500 text-sm"><i class="fas fa-check"></i> Reviewed</span>` 
+                : `<button class="text-brand-600 hover:text-brand-800 font-bold text-sm bg-brand-50 hover:bg-brand-100 px-3 py-1 rounded-full transition open-feedback-btn" data-id="${appt.id}" data-title="${appt.book_title}">Rate & Return</button>`;
+
+            return `
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition border-b border-gray-100 dark:border-gray-700">
+                <td class="p-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-brand-100 text-brand-600 flex items-center justify-center text-lg">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-gray-800 dark:text-white">${appt.book_title}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Borrowed via Appointment</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="p-6 text-brand-600 font-medium">${appt.date}</td>
+                <td class="p-6">
+                    <span class="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-bold">
+                        Active
+                    </span>
+                </td>
+                <td class="p-6">
+                    ${feedbackBtn}
+                </td>
+            </tr>`;
+        }).join('');
     }
 
     function setupEventListeners() {
-        els.links.home.addEventListener('click', (e) => { e.preventDefault(); showHome(); });
-        els.links.myBooks.addEventListener('click', (e) => { e.preventDefault(); showStudentDashboard(); });
-        els.links.admin.addEventListener('click', (e) => { e.preventDefault(); showAdminPanel(); });
-        document.getElementById('searchInput').addEventListener('input', renderBooks);
-        document.getElementById('filterStatus').addEventListener('change', renderBooks);
+        if (els.links.home) els.links.home.addEventListener('click', (e) => { e.preventDefault(); showHome(); });
+        if (els.links.myBooks) els.links.myBooks.addEventListener('click', (e) => { e.preventDefault(); showStudentDashboard(); });
+        if (els.links.admin) els.links.admin.addEventListener('click', (e) => { e.preventDefault(); showAdminPanel(); });
+        
+        const searchInput = document.getElementById('searchInput');
+        const filterStatus = document.getElementById('filterStatus');
+        if (searchInput) searchInput.addEventListener('input', renderBooks);
+        if (filterStatus) filterStatus.addEventListener('change', renderBooks);
+
         document.querySelectorAll('.modal-close').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.target.closest('.fixed').classList.add('hidden');
                 e.target.closest('.fixed').classList.remove('flex');
             });
         });
-        els.auth.loginBtn.addEventListener('click', () => { els.modals.login.classList.remove('hidden'); els.modals.login.classList.add('flex'); });
-        els.auth.signupBtn.addEventListener('click', () => { els.modals.signup.classList.remove('hidden'); els.modals.signup.classList.add('flex'); });
-        els.switchAuth.toSignup.addEventListener('click', () => {
-             els.modals.login.classList.add('hidden'); els.modals.login.classList.remove('flex');
-             els.modals.signup.classList.remove('hidden'); els.modals.signup.classList.add('flex');
-        });
-        els.switchAuth.toLogin.addEventListener('click', () => {
-             els.modals.signup.classList.add('hidden'); els.modals.signup.classList.remove('flex');
-             els.modals.login.classList.remove('hidden'); els.modals.login.classList.add('flex');
-        });
-        els.auth.logoutBtn.addEventListener('click', () => {
-            state.user = null;
-            state.wishlist = [];
-            localStorage.removeItem('digital_library_user'); 
-            updateAuthUI();
-            showHome();
-            showToast("Logged out");
-        });
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            login(document.getElementById('username').value, document.getElementById('password').value);
-        });
-        document.getElementById('signupForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const p = document.getElementById('regPassword').value;
-            const pc = document.getElementById('regConfirmPassword').value;
-            if(p !== pc) return showToast("Passwords do not match", 'error');
-            register(document.getElementById('regName').value, document.getElementById('regUsername').value, p);
-        });
-        document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                student: state.user.name,
-                date: document.getElementById('appointmentDate').value,
-                purpose: document.getElementById('appointmentPurpose').value,
-                book: state.pendingBorrowBook ? state.pendingBorrowBook.title : null,
-                book_id: state.pendingBorrowBook ? state.pendingBorrowBook.id : null
-            };
-            await fetch('api.php?action=create_appointment', { method: 'POST', body: JSON.stringify(payload) });
-            showToast("Appointment Scheduled!");
-            state.pendingBorrowBook = null;
-            els.modals.appoint.classList.add('hidden');
-            els.modals.appoint.classList.remove('flex');
-            fetchBooks();
-        });
 
-        document.getElementById('newImage').addEventListener('change', function() {
-            const fileNameDisplay = document.getElementById('fileNameDisplay');
-            if (this.files && this.files.length > 0) {
-                fileNameDisplay.textContent = "Selected: " + this.files[0].name;
-                fileNameDisplay.classList.remove('hidden');
-            } else {
-                fileNameDisplay.classList.add('hidden');
-            }
-        });
-
-        document.getElementById('addBookForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('title', document.getElementById('newTitle').value);
-            formData.append('author', document.getElementById('newAuthor').value);
-            formData.append('category', document.getElementById('newCategory').value);
-            const fileInput = document.getElementById('newImage');
-            if(fileInput.files[0]) formData.append('image', fileInput.files[0]);
-            await fetch('api.php?action=add_book', { method: 'POST', body: formData });
-            showToast("Book Added!");
-            els.modals.addBook.classList.add('hidden');
-            els.modals.addBook.classList.remove('flex');
-            document.getElementById('addBookForm').reset();
-            document.getElementById('fileNameDisplay').classList.add('hidden');
-            fetchBooks();
-        });
-
-        document.getElementById('addAnnouncementBtn').addEventListener('click', () => {
-             els.modals.addNews.classList.remove('hidden'); els.modals.addNews.classList.add('flex');
-        });
+        if (els.auth.loginBtn) els.auth.loginBtn.addEventListener('click', () => { els.modals.login.classList.remove('hidden'); els.modals.login.classList.add('flex'); });
+        if (els.auth.signupBtn) els.auth.signupBtn.addEventListener('click', () => { els.modals.signup.classList.remove('hidden'); els.modals.signup.classList.add('flex'); });
         
-        document.getElementById('addAnnouncementForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                title: document.getElementById('newsTitle').value,
-                type: document.getElementById('newsType').value,
-                date: document.getElementById('newsDate').value,
-                content: document.getElementById('newsContent').value
-            };
-            await fetch('api.php?action=add_announcement', { method: 'POST', body: JSON.stringify(payload) });
-            showToast("Announcement Posted!");
-            els.modals.addNews.classList.add('hidden');
-            els.modals.addNews.classList.remove('flex');
-            document.getElementById('addAnnouncementForm').reset();
-            fetchAnnouncements();
-        });
-
-        // Feedback Logic
-        document.querySelectorAll('.star-input').forEach(star => {
-            star.addEventListener('click', (e) => {
-                const val = parseInt(e.target.dataset.value);
-                document.getElementById('selectedRating').value = val;
-                
-                document.querySelectorAll('.star-input').forEach(s => {
-                    const sVal = parseInt(s.dataset.value);
-                    if(sVal <= val) {
-                        s.classList.remove('text-gray-300');
-                        s.classList.add('text-yellow-400');
-                    } else {
-                        s.classList.add('text-gray-300');
-                        s.classList.remove('text-yellow-400');
-                    }
-                });
+        if (els.switchAuth.toSignup) {
+            els.switchAuth.toSignup.addEventListener('click', () => {
+                els.modals.login.classList.add('hidden'); els.modals.login.classList.remove('flex');
+                els.modals.signup.classList.remove('hidden'); els.modals.signup.classList.add('flex');
             });
-        });
-
-        document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                id: document.getElementById('feedbackApptId').value,
-                book_title: document.getElementById('feedbackBookTitle').textContent,
-                rating: document.getElementById('selectedRating').value,
-                feedback: document.getElementById('feedbackText').value
-            };
-            
-            await fetch('api.php?action=submit_feedback', {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-            
-            showToast("Review Submitted!");
-            els.modals.feedback.classList.add('hidden');
-            els.modals.feedback.classList.remove('flex');
-            renderStudentTable(); 
-            fetchBooks(); 
-        });
-
-        function resetTabs() {
-            ['tabBooksBtn', 'tabUsersBtn', 'tabApptBtn', 'tabNewsBtn'].forEach(id => {
-                document.getElementById(id).classList.remove('text-brand-600', 'border-brand-600');
-                document.getElementById(id).classList.add('text-gray-500', 'border-transparent');
-            });
-            ['adminBooksTab', 'adminUsersTab', 'adminApptTab', 'adminNewsTab'].forEach(id => document.getElementById(id).classList.add('hidden'));
         }
-        document.getElementById('tabBooksBtn').addEventListener('click', (e) => {
-             resetTabs(); document.getElementById('adminBooksTab').classList.remove('hidden');
-             e.target.classList.add('text-brand-600', 'border-brand-600'); e.target.classList.remove('text-gray-500');
-        });
-        document.getElementById('tabUsersBtn').addEventListener('click', (e) => {
-             resetTabs(); document.getElementById('adminUsersTab').classList.remove('hidden');
-             e.target.classList.add('text-brand-600', 'border-brand-600'); e.target.classList.remove('text-gray-500');
-        });
-        document.getElementById('tabApptBtn').addEventListener('click', (e) => {
-             resetTabs(); document.getElementById('adminApptTab').classList.remove('hidden');
-             e.target.classList.add('text-brand-600', 'border-brand-600'); e.target.classList.remove('text-gray-500');
-        });
-        document.getElementById('tabNewsBtn').addEventListener('click', (e) => {
-             resetTabs(); document.getElementById('adminNewsTab').classList.remove('hidden');
-             e.target.classList.add('text-brand-600', 'border-brand-600'); e.target.classList.remove('text-gray-500');
-        });
+        if (els.switchAuth.toLogin) {
+            els.switchAuth.toLogin.addEventListener('click', () => {
+                els.modals.signup.classList.add('hidden'); els.modals.signup.classList.remove('flex');
+                els.modals.login.classList.remove('hidden'); els.modals.login.classList.add('flex');
+            });
+        }
 
-        document.getElementById('addBookBtn').addEventListener('click', () => {
-             els.modals.addBook.classList.remove('hidden'); els.modals.addBook.classList.add('flex');
-        });
-        
-        document.getElementById('actionBorrow').addEventListener('click', () => {
-            showHome();
-        });
-        document.getElementById('actionAppointment').addEventListener('click', () => {
-             state.pendingBorrowBook = null;
-             document.getElementById('bookFieldContainer').classList.add('hidden');
-             document.getElementById('appointmentPurpose').value = 'Book Return';
-             els.modals.appoint.classList.remove('hidden');
-             els.modals.appoint.classList.add('flex');
-        });
+        if (els.auth.logoutBtn) {
+            els.auth.logoutBtn.addEventListener('click', () => {
+                state.user = null;
+                state.wishlist = [];
+                localStorage.removeItem('digital_library_user'); 
+                updateAuthUI();
+                showHome();
+                showToast("Logged out");
+            });
+        }
+
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                login(document.getElementById('username').value, document.getElementById('password').value);
+            });
+        }
+
+        const signupForm = document.getElementById('signupForm');
+        if (signupForm) {
+            signupForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const p = document.getElementById('regPassword').value;
+                const pc = document.getElementById('regConfirmPassword').value;
+                if(p !== pc) return showToast("Passwords do not match", 'error');
+                register(document.getElementById('regName').value, document.getElementById('regUsername').value, p);
+            });
+        }
+
+        const apptForm = document.getElementById('appointmentForm');
+        if (apptForm) {
+            apptForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newAppt = {
+                    id: Date.now(),
+                    student_name: state.user ? state.user.name : 'Guest',
+                    date: document.getElementById('appointmentDate').value || new Date().toISOString().split('T')[0],
+                    purpose: document.getElementById('appointmentPurpose').value,
+                    book_title: state.pendingBorrowBook ? state.pendingBorrowBook.title : null,
+                    user_rating: null,
+                    feedback: null
+                };
+                if (state.pendingBorrowBook) {
+                    const book = books.find(b => b.id === state.pendingBorrowBook.id);
+                    if (book) book.status = 'borrowed';
+                }
+                appointments.push(newAppt);
+                saveState();
+                showToast("Appointment Scheduled & Book Borrowed!");
+                state.pendingBorrowBook = null;
+                els.modals.appoint.classList.add('hidden');
+                els.modals.appoint.classList.remove('flex');
+                fetchBooks();
+            });
+        }
     }
 
     function initCarousel() {
@@ -758,16 +694,20 @@ document.addEventListener("DOMContentLoaded", () => {
             { img: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=1920&auto=format&fit=crop' }
         ];
         const track = document.getElementById('heroTrack');
+        if (!track) return;
         track.innerHTML = slides.map(s => `<div class="w-full flex-shrink-0 h-full bg-cover bg-center" style="background-image: url('${s.img}')"></div>`).join('');
         let currentSlide = 0;
         const updateSlide = () => { track.style.transform = `translateX(-${currentSlide * 100}%)`; };
-        document.getElementById('nextSlide').addEventListener('click', () => { currentSlide = (currentSlide + 1) % slides.length; updateSlide(); });
-        document.getElementById('prevSlide').addEventListener('click', () => { currentSlide = (currentSlide - 1 + slides.length) % slides.length; updateSlide(); });
+        const nextBtn = document.getElementById('nextSlide');
+        const prevBtn = document.getElementById('prevSlide');
+        if (nextBtn) nextBtn.addEventListener('click', () => { currentSlide = (currentSlide + 1) % slides.length; updateSlide(); });
+        if (prevBtn) prevBtn.addEventListener('click', () => { currentSlide = (currentSlide - 1 + slides.length) % slides.length; updateSlide(); });
         setInterval(() => { currentSlide = (currentSlide + 1) % slides.length; updateSlide(); }, 5000);
     }
 
     function showToast(msg, type = 'success') {
         const box = document.getElementById('toastBox');
+        if (!box) return;
         const el = document.createElement('div');
         const color = type === 'success' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-red-500 text-white';
         el.className = `${color} px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 animate-slide-in transition-all`;
